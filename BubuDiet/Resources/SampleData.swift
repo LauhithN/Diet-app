@@ -332,7 +332,7 @@ enum SampleData {
 
     private static func meal(type: MealType, name: String, ingredients: [FoodItem]) -> Meal {
         let estimatedCalories = ingredients.reduce(0) { $0 + $1.calories }
-        Meal(
+        return Meal(
             type: type,
             name: name,
             ingredients: ingredients,
