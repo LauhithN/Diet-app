@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KIMI_API_KEY</key>
+	<string>PASTE_YOUR_KIMI_API_KEY_HERE</string>
+	<key>KIMI_BASE_URL</key>
+	<string>https://api.moonshot.cn/v1/chat/completions</string>
+	<key>KIMI_MODEL</key>
+	<string>moonshot-v1-8k</string>
+	<key>INSTRUCTIONS</key>
+	<string>Copy this file to Config.plist, replace the API key, then add Config.plist to the BubuDiet app target only.</string>
+</dict>
+</plist>
