@@ -12,7 +12,7 @@ final class HomeViewModel: ObservableObject {
     @Published var progressFraction: Double = 0
     @Published var todayMealsSummary = "No meals planned yet."
     @Published var nextReminderText = "Notifications off"
-    @Published var motivationalMessage = MotivationalCopy.messages.first ?? ""
+    @Published var motivationalMessage = RomanticMessageGenerator.randomMessage(for: "Bubu")
     @Published var mealsCompletedText = "0 of 3 meals completed"
     @Published var displayName = "Bubu"
 
@@ -50,15 +50,14 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func message(for today: DailyPlan?) -> String {
-        guard let today else { return MotivationalCopy.messages.first ?? "" }
-
-        switch today.mealsCompletedCount {
-        case 3:
-            return "All three meals are done. Keep the evening gentle and consistent."
-        case 2:
-            return "Only one meal left today. A calm finish is enough."
-        default:
-            return MotivationalCopy.messages.randomElement() ?? "One simple meal at a time."
+        guard let today else {
+            return RomanticMessageGenerator.randomMessage(for: displayName)
         }
+
+        return RomanticMessageGenerator.homeMessage(
+            for: displayName,
+            mealsCompleted: today.mealsCompletedCount,
+            totalMeals: today.meals.count
+        )
     }
 }

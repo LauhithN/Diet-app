@@ -34,6 +34,11 @@
 		4A0000000000000000000019 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001B /* AIService.swift */; };
 		4A000000000000000000001A /* WidgetSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001C /* WidgetSyncService.swift */; };
 		4A0000000000000000000033 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0000000000000000000035 /* KeychainService.swift */; };
+		4A0000000000000000000034 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0000000000000000000036 /* NotificationManager.swift */; };
+		4A0000000000000000000035 /* RomanticMessageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0000000000000000000037 /* RomanticMessageGenerator.swift */; };
+		4A0000000000000000000036 /* ProgressChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0000000000000000000038 /* ProgressChartsView.swift */; };
+		4A0000000000000000000037 /* CalorieTrendChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0000000000000000000039 /* CalorieTrendChartView.swift */; };
+		4A0000000000000000000038 /* ProgressWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000003A /* ProgressWidget.swift */; };
 		4A000000000000000000001B /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001D /* HomeView.swift */; };
 		4A000000000000000000001C /* CalorieRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001E /* CalorieRingView.swift */; };
 		4A000000000000000000001D /* SummaryCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001F /* SummaryCardView.swift */; };
@@ -138,6 +143,11 @@
 		3A0000000000000000000033 /* BubuDiet.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BubuDiet.entitlements; sourceTree = "<group>"; };
 		3A0000000000000000000034 /* BubuDietWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BubuDietWidget.entitlements; sourceTree = "<group>"; };
 		3A0000000000000000000035 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		3A0000000000000000000036 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		3A0000000000000000000037 /* RomanticMessageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomanticMessageGenerator.swift; sourceTree = "<group>"; };
+		3A0000000000000000000038 /* ProgressChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressChartsView.swift; sourceTree = "<group>"; };
+		3A0000000000000000000039 /* CalorieTrendChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalorieTrendChartView.swift; sourceTree = "<group>"; };
+		3A000000000000000000003A /* ProgressWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -242,6 +252,8 @@
 				3A000000000000000000001A /* StorageService.swift */,
 				3A000000000000000000001B /* AIService.swift */,
 				3A000000000000000000001C /* WidgetSyncService.swift */,
+				3A0000000000000000000036 /* NotificationManager.swift */,
+				3A0000000000000000000037 /* RomanticMessageGenerator.swift */,
 				3A0000000000000000000035 /* KeychainService.swift */,
 			);
 			path = Services;
@@ -294,6 +306,8 @@
 			children = (
 				3A0000000000000000000024 /* ProgressView.swift */,
 				3A0000000000000000000025 /* WeightChartView.swift */,
+				3A0000000000000000000038 /* ProgressChartsView.swift */,
+				3A0000000000000000000039 /* CalorieTrendChartView.swift */,
 			);
 			path = Progress;
 			sourceTree = "<group>";
@@ -327,6 +341,7 @@
 			children = (
 				3A000000000000000000002D /* BubuDietWidget.swift */,
 				3A000000000000000000002E /* BubuDietWidgetBundle.swift */,
+				3A000000000000000000003A /* ProgressWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -481,6 +496,8 @@
 				4A0000000000000000000019 /* AIService.swift in Sources */,
 				4A000000000000000000001A /* WidgetSyncService.swift in Sources */,
 				4A0000000000000000000033 /* KeychainService.swift in Sources */,
+				4A0000000000000000000034 /* NotificationManager.swift in Sources */,
+				4A0000000000000000000035 /* RomanticMessageGenerator.swift in Sources */,
 				4A000000000000000000001B /* HomeView.swift in Sources */,
 				4A000000000000000000001C /* CalorieRingView.swift in Sources */,
 				4A000000000000000000001D /* SummaryCardView.swift in Sources */,
@@ -490,6 +507,8 @@
 				4A0000000000000000000021 /* GroceryListView.swift in Sources */,
 				4A0000000000000000000022 /* ProgressView.swift in Sources */,
 				4A0000000000000000000023 /* WeightChartView.swift in Sources */,
+				4A0000000000000000000036 /* ProgressChartsView.swift in Sources */,
+				4A0000000000000000000037 /* CalorieTrendChartView.swift in Sources */,
 				4A0000000000000000000024 /* ExercisePlanView.swift in Sources */,
 				4A0000000000000000000025 /* AIMealSuggestionView.swift in Sources */,
 				4A0000000000000000000026 /* SettingsView.swift in Sources */,
@@ -509,6 +528,7 @@
 				4A000000000000000000002D /* WidgetSnapshot.swift in Sources */,
 				4A000000000000000000002E /* Extensions.swift in Sources */,
 				4A000000000000000000002F /* Constants.swift in Sources */,
+				4A0000000000000000000038 /* ProgressWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

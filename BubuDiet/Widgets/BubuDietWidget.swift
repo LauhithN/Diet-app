@@ -33,46 +33,6 @@ struct BubuDietWidgetProvider: TimelineProvider {
     }
 }
 
-private struct BubuWidgetBackground: View {
-    var body: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 1.0, green: 0.97, blue: 0.95),
-                Color(red: 0.97, green: 0.90, blue: 0.91)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-}
-
-private struct WidgetProgressBar: View {
-    let value: Double
-
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule(style: .continuous)
-                    .fill(Color.black.opacity(0.08))
-
-                Capsule(style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.65, green: 0.36, blue: 0.43),
-                                Color(red: 0.90, green: 0.64, blue: 0.70)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: proxy.size.width * min(max(value, 0), 1))
-            }
-        }
-        .frame(height: 12)
-    }
-}
-
 private struct CalorieProgressWidgetEntryView: View {
     let entry: BubuDietWidgetEntry
 
@@ -84,19 +44,29 @@ private struct CalorieProgressWidgetEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Calorie progress")
+            Text("Daily calorie progress")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color(red: 0.49, green: 0.29, blue: 0.35))
+                .foregroundStyle(ProgressWidgetPalette.title)
 
-            Text("\(entry.snapshot.consumedCalories) / \(entry.snapshot.consumedCalories + entry.snapshot.remainingCalories)")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Color(red: 0.20, green: 0.14, blue: 0.17))
+            HStack(spacing: 14) {
+                ZStack {
+                    ProgressWidgetRing(value: progress)
+                    Text("\(Int((progress * 100).rounded()))%")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(ProgressWidgetPalette.headline)
+                }
+                .frame(width: 62, height: 62)
 
-            Text("calories today")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(entry.snapshot.consumedCalories) / \(entry.snapshot.consumedCalories + entry.snapshot.remainingCalories)")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(ProgressWidgetPalette.headline)
 
-            WidgetProgressBar(value: progress)
+                    Text("calories today")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             HStack {
                 Text("\(entry.snapshot.remainingCalories) left")
@@ -104,11 +74,11 @@ private struct CalorieProgressWidgetEntryView: View {
                 Text("\(entry.snapshot.mealsCompleted)/\(entry.snapshot.totalMeals) meals")
             }
             .font(.caption2.weight(.medium))
-            .foregroundStyle(Color(red: 0.49, green: 0.29, blue: 0.35))
+            .foregroundStyle(ProgressWidgetPalette.title)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            BubuWidgetBackground()
+            ProgressWidgetBackground()
         }
     }
 }
@@ -118,17 +88,17 @@ private struct MealReminderWidgetEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Next reminder")
+            Text("Meal reminder")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color(red: 0.49, green: 0.29, blue: 0.35))
+                .foregroundStyle(ProgressWidgetPalette.title)
 
             Text(entry.snapshot.nextReminderTitle)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(Color(red: 0.20, green: 0.14, blue: 0.17))
+                .foregroundStyle(ProgressWidgetPalette.headline)
 
             Text(entry.snapshot.nextReminderTimeText)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color(red: 0.65, green: 0.36, blue: 0.43))
+                .foregroundStyle(ProgressWidgetPalette.accent)
 
             Spacer(minLength: 0)
 
@@ -138,7 +108,7 @@ private struct MealReminderWidgetEntryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            BubuWidgetBackground()
+            ProgressWidgetBackground()
         }
     }
 }
@@ -155,18 +125,18 @@ private struct WeightProgressWidgetEntryView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Weight progress")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color(red: 0.49, green: 0.29, blue: 0.35))
+                .foregroundStyle(ProgressWidgetPalette.title)
 
             HStack(alignment: .firstTextBaseline) {
                 Text(entry.snapshot.currentWeight.oneDecimalText)
                     .font(.title2.weight(.semibold))
-                    .foregroundStyle(Color(red: 0.20, green: 0.14, blue: 0.17))
+                    .foregroundStyle(ProgressWidgetPalette.headline)
                 Text("lbs")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
-            WidgetProgressBar(value: progress)
+            ProgressWidgetBar(value: progress)
 
             HStack {
                 Text("Lost \(entry.snapshot.poundsLost.oneDecimalText) lbs")
@@ -174,11 +144,11 @@ private struct WeightProgressWidgetEntryView: View {
                 Text("Goal \(entry.snapshot.goalWeight.oneDecimalText)")
             }
             .font(.caption2.weight(.medium))
-            .foregroundStyle(Color(red: 0.49, green: 0.29, blue: 0.35))
+            .foregroundStyle(ProgressWidgetPalette.title)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            BubuWidgetBackground()
+            ProgressWidgetBackground()
         }
     }
 }
@@ -190,11 +160,11 @@ private struct RomanticMotivationWidgetEntryView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("For \(entry.snapshot.displayName)")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color(red: 0.49, green: 0.29, blue: 0.35))
+                .foregroundStyle(ProgressWidgetPalette.title)
 
             Text(entry.snapshot.motivationLine)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(Color(red: 0.20, green: 0.14, blue: 0.17))
+                .foregroundStyle(ProgressWidgetPalette.headline)
                 .fixedSize(horizontal: false, vertical: true)
 
             Spacer(minLength: 0)
@@ -205,7 +175,7 @@ private struct RomanticMotivationWidgetEntryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            BubuWidgetBackground()
+            ProgressWidgetBackground()
         }
     }
 }

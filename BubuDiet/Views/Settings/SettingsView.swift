@@ -168,6 +168,18 @@ struct SettingsView: View {
                 time: notificationBinding(\.weighInTime)
             )
 
+            reminderRow(
+                title: "Water reminder",
+                isOn: notificationBinding(\.waterReminderEnabled),
+                time: notificationBinding(\.waterReminderTime)
+            )
+
+            reminderRow(
+                title: "Motivational note",
+                isOn: notificationBinding(\.motivationReminderEnabled),
+                time: notificationBinding(\.motivationReminderTime)
+            )
+
             Button("Request Permission") {
                 Task {
                     await notificationViewModel.requestPermission()
@@ -175,7 +187,7 @@ struct SettingsView: View {
             }
             .buttonStyle(BubuSecondaryButtonStyle())
 
-            Button("Schedule Local Reminders") {
+            Button("Schedule Daily Reminders") {
                 Task {
                     await notificationViewModel.scheduleNotifications(using: settingsViewModel.settings)
                 }
@@ -183,6 +195,10 @@ struct SettingsView: View {
             .buttonStyle(BubuPrimaryButtonStyle())
 
             Text(notificationViewModel.statusMessage)
+                .font(Theme.Typography.footnote)
+                .foregroundStyle(Theme.Palette.mist)
+
+            Text("Meal, water, and motivational reminders all use the same local permission flow.")
                 .font(Theme.Typography.footnote)
                 .foregroundStyle(Theme.Palette.mist)
         }

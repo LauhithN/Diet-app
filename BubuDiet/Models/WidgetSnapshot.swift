@@ -26,7 +26,7 @@ struct WidgetSnapshot: Codable, Equatable {
             poundsLost: 7,
             nextReminderTitle: "Dinner",
             nextReminderTimeText: "7:00 PM",
-            motivationLine: "A calm routine is still progress.",
+            motivationLine: "You're doing amazing today, Bubu.",
             updatedAt: Date()
         )
     }

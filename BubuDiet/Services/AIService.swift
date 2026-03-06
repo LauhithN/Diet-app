@@ -75,6 +75,29 @@ struct AIService {
         return try parseSuggestion(prompt: prompt, from: content)
     }
 
+    func generateTargetMealPlan(using settings: AppSettings, variation: Int) -> AISuggestionResponse {
+        let meals = buildTargetMeals(targetCalories: settings.dailyCalorieTarget, variation: variation)
+        let totalCalories = meals.reduce(0) { $0 + $1.adjustedCalories }
+        let totalProtein = meals.reduce(0) { $0 + $1.adjustedProteinGrams }
+        let totalCost = meals.reduce(0) { $0 + $1.adjustedCostCAD }
+
+        let suggestions = meals.map { meal in
+            AISuggestedMeal(
+                title: "\(meal.type.rawValue) • \(meal.name)",
+                detail: "\(meal.ingredients.count) simple ingredients. Portioned to around \(meal.adjustedCalories.calorieText) with \(meal.adjustedProteinGrams.oneDecimalText) g protein.",
+                estimatedCalories: meal.adjustedCalories,
+                estimatedProteinGrams: meal.adjustedProteinGrams,
+                estimatedCostCAD: meal.adjustedCostCAD
+            )
+        }
+
+        return AISuggestionResponse(
+            prompt: "Build a \(settings.dailyCalorieTarget)-calorie day for \(settings.displayName)",
+            summary: "This locally generated day lands around \(totalCalories.calorieText), \(totalProtein.oneDecimalText) g protein, and \(totalCost.asCurrencyCAD). Tap regenerate for another balanced combination.",
+            suggestions: suggestions
+        )
+    }
+
     private func systemPrompt(targetCalories: Int, name: String) -> String {
         """
         You are creating meal suggestions for \(name), a woman following a \(targetCalories)-calorie day.
@@ -151,6 +174,53 @@ struct AIService {
         }
 
         return trimmed
+    }
+
+    private func buildTargetMeals(targetCalories: Int, variation: Int) -> [Meal] {
+        let allocations: [(MealType, Double)] = [
+            (.breakfast, 0.28),
+            (.lunch, 0.34),
+            (.dinner, 0.38)
+        ]
+
+        return allocations.enumerated().map { index, allocation in
+            let idealCalories = Int((Double(targetCalories) * allocation.1).rounded())
+            let pool = candidateMeals(for: allocation.0)
+                .sorted {
+                    abs($0.baseCalories - idealCalories) < abs($1.baseCalories - idealCalories)
+                }
+
+            let candidateIndex = (variation + index) % max(pool.count, 1)
+            return adjustedMeal(pool[candidateIndex], toward: idealCalories)
+        }
+    }
+
+    private func candidateMeals(for type: MealType) -> [Meal] {
+        switch type {
+        case .breakfast:
+            SampleData.breakfastMeals()
+        case .lunch:
+            SampleData.lunchMeals()
+        case .dinner:
+            SampleData.dinnerMeals()
+        }
+    }
+
+    private func adjustedMeal(_ meal: Meal, toward targetCalories: Int) -> Meal {
+        let rawMultiplier = Double(targetCalories) / Double(max(meal.baseCalories, 1))
+        let roundedMultiplier = (rawMultiplier * 4).rounded() / 4
+        let clampedMultiplier = min(max(roundedMultiplier, 0.75), 1.4)
+
+        return Meal(
+            id: UUID(),
+            type: meal.type,
+            name: meal.name,
+            ingredients: meal.ingredients,
+            baseCalories: meal.baseCalories,
+            estimatedCostCAD: meal.estimatedCostCAD,
+            proteinGrams: meal.proteinGrams,
+            portionMultiplier: clampedMultiplier
+        )
     }
 
     private func parseSuggestion(prompt: String, from content: String) throws -> AISuggestionResponse {

@@ -39,7 +39,7 @@ final class NotificationViewModel: ObservableObject {
                 preferences: settings.notificationPreferences,
                 displayName: settings.displayName
             )
-            statusMessage = "Daily reminders scheduled locally on this iPhone."
+            statusMessage = "Meal, water, weigh-in, and motivational reminders are scheduled on this iPhone."
         } catch {
             statusMessage = error.localizedDescription
         }

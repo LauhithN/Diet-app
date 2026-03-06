@@ -8,6 +8,7 @@ struct WeightChartView: View {
     var body: some View {
         if entries.isEmpty {
             ContentUnavailableView("No weights logged yet", systemImage: "chart.line.uptrend.xyaxis")
+                .frame(maxWidth: .infinity, minHeight: 240)
         } else {
             Chart {
                 ForEach(entries.sorted { $0.date < $1.date }) { entry in
@@ -29,6 +30,7 @@ struct WeightChartView: View {
                     )
                     .foregroundStyle(Theme.Palette.rose)
                     .lineStyle(.init(lineWidth: 3.5, lineCap: .round))
+                    .interpolationMethod(.catmullRom)
 
                     PointMark(
                         x: .value("Date", entry.date),
@@ -47,10 +49,24 @@ struct WeightChartView: View {
                     }
             }
             .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 4))
+                AxisMarks(values: .automatic(desiredCount: 4)) { value in
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                        .foregroundStyle(Theme.Palette.border.opacity(0.6))
+                    AxisValueLabel {
+                        if let date = value.as(Date.self) {
+                            Text(date.shortDateLabel)
+                                .font(Theme.Typography.caption)
+                        }
+                    }
+                }
             }
             .chartYAxis {
-                AxisMarks(position: .leading)
+                AxisMarks(position: .leading) { _ in
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                        .foregroundStyle(Theme.Palette.border.opacity(0.6))
+                    AxisValueLabel()
+                        .font(Theme.Typography.caption)
+                }
             }
             .chartLegend(.hidden)
             .frame(height: 260)

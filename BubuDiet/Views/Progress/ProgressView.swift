@@ -3,6 +3,7 @@ import SwiftUI
 struct BubuProgressView: View {
     @EnvironmentObject private var progressViewModel: ProgressViewModel
     @EnvironmentObject private var settingsViewModel: SettingsViewModel
+    @EnvironmentObject private var mealPlanViewModel: MealPlanViewModel
 
     @State private var isPresentingEditor = false
     @State private var editingEntry: WeightEntry?
@@ -12,8 +13,13 @@ struct BubuProgressView: View {
             ScrollView {
                 VStack(spacing: Theme.Spacing.lg) {
                     summaryCard
-                    chartCard
-                    weeklyAveragesCard
+                    ProgressChartsView(
+                        weightEntries: progressViewModel.weightEntries,
+                        weeklyAverages: progressViewModel.weeklyAverages,
+                        calorieTarget: settingsViewModel.settings.dailyCalorieTarget,
+                        dailyPlans: mealPlanViewModel.weeklyPlan.days,
+                        goalWeight: settingsViewModel.settings.goalWeight
+                    )
                     entriesCard
                 }
                 .padding(.horizontal, Theme.Spacing.md)
@@ -71,54 +77,6 @@ struct BubuProgressView: View {
                     icon: "flag.checkered.2.crossed",
                     accent: Theme.Palette.roseDeep
                 )
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .bubuCard(tint: Theme.Palette.surface)
-    }
-
-    private var chartCard: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            Text("Your trend line")
-                .font(Theme.Typography.section)
-                .foregroundStyle(Theme.Palette.cocoa)
-
-            WeightChartView(
-                entries: progressViewModel.weightEntries,
-                goalWeight: settingsViewModel.settings.goalWeight
-            )
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .bubuCard(tint: Theme.Palette.surface)
-    }
-
-    private var weeklyAveragesCard: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Text("Weekly averages")
-                .font(Theme.Typography.section)
-                .foregroundStyle(Theme.Palette.cocoa)
-
-            if progressViewModel.weeklyAverages.isEmpty {
-                Text("Log a few entries to see averages appear here.")
-                    .font(Theme.Typography.body)
-                    .foregroundStyle(Theme.Palette.mist)
-            } else {
-                ForEach(progressViewModel.weeklyAverages) { average in
-                    HStack {
-                        Text(average.weekStart.fullDateLabel)
-                            .font(Theme.Typography.body)
-                            .foregroundStyle(Theme.Palette.cocoa)
-                        Spacer()
-                        Text("\(average.averageWeight.oneDecimalText) lbs")
-                            .font(Theme.Typography.bodyStrong)
-                            .foregroundStyle(Theme.Palette.rose)
-                    }
-
-                    if average.id != progressViewModel.weeklyAverages.last?.id {
-                        Divider()
-                            .overlay(Theme.Palette.border)
-                    }
-                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

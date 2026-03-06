@@ -2,10 +2,16 @@ import Foundation
 
 @MainActor
 final class AIViewModel: ObservableObject {
+    private enum SuggestionRequest {
+        case prompt(String)
+        case calorieTarget
+    }
+
     @Published var prompt = ""
     @Published var response: AISuggestionResponse?
     @Published var errorMessage: String?
     @Published var isLoading = false
+    @Published var responseSource = "Local calorie-target generator"
 
     let presetPrompts = [
         "Suggest a breakfast under 500 calories.",
@@ -16,6 +22,8 @@ final class AIViewModel: ObservableObject {
     ]
 
     private let service: AIService
+    private var lastRequest: SuggestionRequest?
+    private var localVariation = 0
 
     init(service: AIService = AIService()) {
         self.service = service
@@ -35,14 +43,38 @@ final class AIViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        responseSource = "NVIDIA Kimi"
 
         do {
             response = try await service.fetchSuggestion(for: trimmedPrompt, settings: settings)
+            lastRequest = .prompt(trimmedPrompt)
         } catch {
             response = nil
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
+    }
+
+    func generateMealsForTarget(using settings: AppSettings) {
+        localVariation = 0
+        buildLocalTargetPlan(using: settings)
+    }
+
+    func regenerate(using settings: AppSettings) async {
+        switch lastRequest {
+        case .prompt:
+            await fetchSuggestion(using: settings)
+        case .calorieTarget, .none:
+            localVariation += 1
+            buildLocalTargetPlan(using: settings)
+        }
+    }
+
+    private func buildLocalTargetPlan(using settings: AppSettings) {
+        errorMessage = nil
+        response = service.generateTargetMealPlan(using: settings, variation: localVariation)
+        responseSource = "Local calorie-target generator"
+        lastRequest = .calorieTarget
     }
 }

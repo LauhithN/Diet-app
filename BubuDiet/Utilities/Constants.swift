@@ -21,6 +21,17 @@ enum ReminderIdentifiers {
     static let lunch = "bubudiet.lunch"
     static let dinner = "bubudiet.dinner"
     static let weighIn = "bubudiet.weighin"
+    static let water = "bubudiet.water"
+    static let motivation = "bubudiet.motivation"
+
+    static let allCases = [
+        breakfast,
+        lunch,
+        dinner,
+        weighIn,
+        water,
+        motivation
+    ]
 }
 
 enum SecureStorageKeys {
@@ -29,10 +40,10 @@ enum SecureStorageKeys {
 
 enum MotivationalCopy {
     static let messages = [
-        "Small choices add up to big changes.",
-        "Consistency beats perfection.",
+        "You're doing amazing today, Bubu.",
+        "Every step brings you closer to your goal.",
+        "Your future self will thank you.",
         "A calm routine is still progress.",
-        "You are building this one day at a time.",
-        "Steady habits can carry the whole year."
+        "Consistency wrapped in kindness is enough."
     ]
 }
