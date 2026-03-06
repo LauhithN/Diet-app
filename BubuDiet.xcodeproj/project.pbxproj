@@ -33,6 +33,7 @@
 		4A0000000000000000000018 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001A /* StorageService.swift */; };
 		4A0000000000000000000019 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001B /* AIService.swift */; };
 		4A000000000000000000001A /* WidgetSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001C /* WidgetSyncService.swift */; };
+		4A0000000000000000000033 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0000000000000000000035 /* KeychainService.swift */; };
 		4A000000000000000000001B /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001D /* HomeView.swift */; };
 		4A000000000000000000001C /* CalorieRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001E /* CalorieRingView.swift */; };
 		4A000000000000000000001D /* SummaryCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A000000000000000000001F /* SummaryCardView.swift */; };
@@ -136,6 +137,7 @@
 		3A0000000000000000000032 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3A0000000000000000000033 /* BubuDiet.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BubuDiet.entitlements; sourceTree = "<group>"; };
 		3A0000000000000000000034 /* BubuDietWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BubuDietWidget.entitlements; sourceTree = "<group>"; };
+		3A0000000000000000000035 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -240,6 +242,7 @@
 				3A000000000000000000001A /* StorageService.swift */,
 				3A000000000000000000001B /* AIService.swift */,
 				3A000000000000000000001C /* WidgetSyncService.swift */,
+				3A0000000000000000000035 /* KeychainService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -477,6 +480,7 @@
 				4A0000000000000000000018 /* StorageService.swift in Sources */,
 				4A0000000000000000000019 /* AIService.swift in Sources */,
 				4A000000000000000000001A /* WidgetSyncService.swift in Sources */,
+				4A0000000000000000000033 /* KeychainService.swift in Sources */,
 				4A000000000000000000001B /* HomeView.swift in Sources */,
 				4A000000000000000000001C /* CalorieRingView.swift in Sources */,
 				4A000000000000000000001D /* SummaryCardView.swift in Sources */,

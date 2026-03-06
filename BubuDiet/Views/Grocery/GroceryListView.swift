@@ -1,64 +1,91 @@
 import SwiftUI
 
 struct GroceryListView: View {
+    var showsNavigationShell = true
+
+    var body: some View {
+        Group {
+            if showsNavigationShell {
+                NavigationStack {
+                    GroceryListContent()
+                        .navigationTitle("Groceries")
+                        .navigationBarTitleDisplayMode(.large)
+                }
+            } else {
+                GroceryListContent()
+            }
+        }
+        .bubuScreenBackground()
+    }
+}
+
+struct GroceryListContent: View {
     @EnvironmentObject private var groceryListViewModel: GroceryListViewModel
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Weekly grocery list")
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(Theme.cocoa)
-                        Text("Generated from the current 7-day plan with simple ingredient totals and estimated Canadian pricing.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Label(groceryListViewModel.totalCost.asCurrencyCAD, systemImage: "cart.fill")
-                            .font(.headline)
-                            .foregroundStyle(Theme.rose)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .bubuCard()
+        ScrollView {
+            VStack(spacing: Theme.Spacing.lg) {
+                BubuSectionHeader(
+                    eyebrow: "Shopping flow",
+                    title: "Weekly grocery list",
+                    subtitle: "Generated directly from the current meal plan so the list stays grounded in what you actually intend to cook."
+                )
 
-                    ForEach(FoodCategory.allCases) { category in
-                        let items = groceryListViewModel.items.filter { $0.category == category }
-                        if !items.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(category.rawValue)
-                                    .font(.headline)
-                                    .foregroundStyle(Theme.cocoa)
+                headerCard
 
-                                ForEach(items) { item in
-                                    HStack(alignment: .top) {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(item.name)
-                                                .font(.subheadline.weight(.semibold))
-                                                .foregroundStyle(Theme.cocoa)
-                                            Text(item.quantityText)
-                                                .font(.footnote)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        Spacer()
-                                        Text(item.estimatedPriceCAD.asCurrencyCAD)
-                                            .font(.footnote.weight(.semibold))
-                                            .foregroundStyle(Theme.rose)
-                                    }
-                                    if item.id != items.last?.id {
-                                        Divider()
-                                    }
+                ForEach(groceryListViewModel.groupedItems, id: \.0.id) { category, items in
+                    VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                        Text(category.rawValue)
+                            .font(Theme.Typography.section)
+                            .foregroundStyle(Theme.Palette.cocoa)
+
+                        ForEach(items) { item in
+                            HStack(alignment: .top, spacing: Theme.Spacing.sm) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.name)
+                                        .font(Theme.Typography.bodyStrong)
+                                        .foregroundStyle(Theme.Palette.cocoa)
+                                    Text(item.quantityText)
+                                        .font(Theme.Typography.footnote)
+                                        .foregroundStyle(Theme.Palette.mist)
                                 }
+
+                                Spacer()
+
+                                Text(item.estimatedPriceCAD.asCurrencyCAD)
+                                    .font(Theme.Typography.bodyStrong)
+                                    .foregroundStyle(Theme.Palette.rose)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .bubuCard()
+                            .padding(.vertical, 4)
+
+                            if item.id != items.last?.id {
+                                Divider()
+                                    .overlay(Theme.Palette.border)
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .bubuCard(tint: Theme.Palette.surface)
                 }
-                .padding()
             }
-            .background(Theme.cream.ignoresSafeArea())
-            .navigationTitle("Groceries")
+            .padding(.horizontal, Theme.Spacing.md)
+            .padding(.vertical, Theme.Spacing.lg)
         }
+    }
+
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text("One tidy list for the full week, with cost visibility built in so the routine stays sustainable.")
+                .font(Theme.Typography.body)
+                .foregroundStyle(Theme.Palette.mist)
+
+            HStack(spacing: Theme.Spacing.xs) {
+                BubuMetricPill(title: "Estimated total", value: groceryListViewModel.totalCost.asCurrencyCAD, icon: "cart.fill")
+                BubuMetricPill(title: "Items", value: "\(groceryListViewModel.items.count)", icon: "list.bullet.rectangle.fill", accent: Theme.Palette.sage)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surfaceRaised)
     }
 }
 

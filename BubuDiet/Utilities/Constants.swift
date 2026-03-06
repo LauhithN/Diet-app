@@ -4,8 +4,8 @@ enum AppConstants {
     static let appName = "BubuDiet"
     static let appGroupIdentifier = "group.com.bubudiet.shared"
     static let defaultCalorieTarget = 1500
-    static let kimiEndpoint = "https://api.moonshot.cn/v1/chat/completions"
-    static let kimiDefaultModel = "moonshot-v1-8k"
+    static let kimiEndpoint = "https://integrate.api.nvidia.com/v1/chat/completions"
+    static let kimiDefaultModel = "moonshotai/kimi-k2-instruct-0905"
 }
 
 enum StorageKeys {
@@ -21,6 +21,10 @@ enum ReminderIdentifiers {
     static let lunch = "bubudiet.lunch"
     static let dinner = "bubudiet.dinner"
     static let weighIn = "bubudiet.weighin"
+}
+
+enum SecureStorageKeys {
+    static let kimiAPIKey = "bubudiet.kimi.apiKey"
 }
 
 enum MotivationalCopy {

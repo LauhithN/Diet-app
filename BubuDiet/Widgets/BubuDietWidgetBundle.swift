@@ -4,6 +4,9 @@ import WidgetKit
 @main
 struct BubuDietWidgetBundle: WidgetBundle {
     var body: some Widget {
-        BubuDietWidget()
+        CalorieProgressWidget()
+        DailyMealReminderWidget()
+        WeightProgressWidget()
+        RomanticMotivationalWidget()
     }
 }

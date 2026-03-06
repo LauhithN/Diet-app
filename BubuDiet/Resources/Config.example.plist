@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
 	<key>KIMI_API_KEY</key>
-	<string>PASTE_YOUR_KIMI_API_KEY_HERE</string>
+	<string>PASTE_YOUR_NVIDIA_KIMI_API_KEY_HERE</string>
 	<key>KIMI_BASE_URL</key>
-	<string>https://api.moonshot.cn/v1/chat/completions</string>
+	<string>https://integrate.api.nvidia.com/v1/chat/completions</string>
 	<key>KIMI_MODEL</key>
-	<string>moonshot-v1-8k</string>
+	<string>moonshotai/kimi-k2-instruct-0905</string>
 	<key>INSTRUCTIONS</key>
-	<string>Copy this file to Config.plist, replace the API key, then add Config.plist to the BubuDiet app target only.</string>
+	<string>Paste your NVIDIA API key here if you prefer file-based config. The app also supports entering the key from Settings and stores it locally in the device keychain.</string>
 </dict>
 </plist>

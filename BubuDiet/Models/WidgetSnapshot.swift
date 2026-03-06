@@ -9,6 +9,9 @@ struct WidgetSnapshot: Codable, Equatable {
     var currentWeight: Double
     var goalWeight: Double
     var poundsLost: Double
+    var nextReminderTitle: String
+    var nextReminderTimeText: String
+    var motivationLine: String
     var updatedAt: Date
 
     static var placeholder: WidgetSnapshot {
@@ -21,6 +24,9 @@ struct WidgetSnapshot: Codable, Equatable {
             currentWeight: 218,
             goalWeight: 180,
             poundsLost: 7,
+            nextReminderTitle: "Dinner",
+            nextReminderTimeText: "7:00 PM",
+            motivationLine: "A calm routine is still progress.",
             updatedAt: Date()
         )
     }

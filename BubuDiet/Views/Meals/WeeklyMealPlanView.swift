@@ -4,47 +4,60 @@ struct WeeklyMealPlanView: View {
     let weeklyPlan: WeeklyPlan
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Theme.Spacing.md) {
             ForEach(Array(weeklyPlan.days.enumerated()), id: \.element.id) { index, day in
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Day \(index + 1)")
-                            .font(.headline)
-                            .foregroundStyle(Theme.cocoa)
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
+                            Text("Day \(index + 1)")
+                                .font(Theme.Typography.caption)
+                                .foregroundStyle(Theme.Palette.rose)
+                            Text(day.date.fullDateLabel)
+                                .font(Theme.Typography.section)
+                                .foregroundStyle(Theme.Palette.cocoa)
+                        }
+
                         Spacer()
-                        Text(day.date.fullDateLabel)
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(.secondary)
+
+                        Text(day.totalPlannedCalories.calorieText)
+                            .font(Theme.Typography.bodyStrong)
+                            .foregroundStyle(Theme.Palette.cocoa)
+                            .padding(.horizontal, Theme.Spacing.sm)
+                            .padding(.vertical, Theme.Spacing.xs)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(Theme.Palette.surfaceRaised)
+                            )
                     }
 
                     ForEach(day.orderedMeals) { meal in
-                        HStack {
+                        HStack(alignment: .top, spacing: Theme.Spacing.sm) {
                             Text(meal.type.rawValue)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Theme.rose)
-                                .frame(width: 88, alignment: .leading)
-                            Text(meal.name)
-                                .font(.subheadline)
-                                .foregroundStyle(Theme.cocoa)
+                                .font(Theme.Typography.caption)
+                                .foregroundStyle(Theme.Palette.rose)
+                                .frame(width: 74, alignment: .leading)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(meal.name)
+                                    .font(Theme.Typography.bodyStrong)
+                                    .foregroundStyle(Theme.Palette.cocoa)
+                                Text("\(meal.adjustedCalories.calorieText) • \(meal.adjustedProteinGrams.oneDecimalText)g protein")
+                                    .font(Theme.Typography.footnote)
+                                    .foregroundStyle(Theme.Palette.mist)
+                            }
+
                             Spacer()
-                            Text("\(meal.adjustedCalories) cal")
-                                .font(.footnote.weight(.medium))
-                                .foregroundStyle(.secondary)
                         }
+                        .padding(.vertical, 4)
                     }
 
-                    Divider()
-
-                    HStack {
-                        Label("\(day.totalPlannedCalories) cal", systemImage: "flame")
-                        Spacer()
-                        Label(day.totalEstimatedCostCAD.asCurrencyCAD, systemImage: "cart")
+                    HStack(spacing: Theme.Spacing.xs) {
+                        BubuMetricPill(title: "Daily calories", value: day.totalPlannedCalories.calorieText, icon: "flame.fill")
+                        BubuMetricPill(title: "Estimated cost", value: day.totalEstimatedCostCAD.asCurrencyCAD, icon: "cart.fill", accent: Theme.Palette.sage)
                     }
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Theme.cocoa)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .bubuCard()
+                .bubuCard(tint: Theme.Palette.surface)
             }
         }
     }
@@ -55,5 +68,5 @@ struct WeeklyMealPlanView: View {
         WeeklyMealPlanView(weeklyPlan: SampleData.weeklyPlan())
             .padding()
     }
-    .background(Theme.cream)
+    .background(BubuScreenBackground())
 }

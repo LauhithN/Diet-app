@@ -7,31 +7,43 @@ struct SummaryCardView: View {
     let systemImage: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
             HStack {
                 Image(systemName: systemImage)
-                    .foregroundStyle(Theme.rose)
-                Spacer()
+                    .font(.headline)
+                    .foregroundStyle(Theme.Palette.rose)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        Circle()
+                            .fill(Theme.Palette.blush.opacity(0.55))
+                    )
+
+                Spacer(minLength: Theme.Spacing.xs)
+
                 Text(title)
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(Theme.Palette.mist)
+                    .multilineTextAlignment(.trailing)
             }
 
             Text(value)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(Theme.cocoa)
+                .font(Theme.Typography.section)
+                .foregroundStyle(Theme.Palette.cocoa)
+                .minimumScaleFactor(0.8)
 
             Text(detail)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                .font(Theme.Typography.footnote)
+                .foregroundStyle(Theme.Palette.mist)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .bubuCard()
+        .frame(maxWidth: .infinity, minHeight: 154, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+        .accessibilityElement(children: .combine)
     }
 }
 
 #Preview {
     SummaryCardView(title: "Goal", value: "180 lbs", detail: "45 lbs to go", systemImage: "flag")
         .padding()
-        .background(Theme.cream)
+        .background(BubuScreenBackground())
 }

@@ -11,7 +11,7 @@ enum AIServiceError: LocalizedError {
         case .disabled:
             "AI suggestions are turned off in Settings."
         case .missingConfiguration:
-            "Config.plist is missing or still contains the placeholder Kimi API key."
+            "Add your NVIDIA Kimi API key in Settings or Config.plist before requesting suggestions."
         case .invalidResponse:
             "The Kimi response could not be parsed into a suggestion."
         case .requestFailed(let message):
@@ -22,9 +22,14 @@ enum AIServiceError: LocalizedError {
 
 struct AIService {
     private let session: URLSession
+    private let keychain: KeychainService
 
-    init(session: URLSession = .shared) {
+    init(
+        session: URLSession = .shared,
+        keychain: KeychainService = .shared
+    ) {
         self.session = session
+        self.keychain = keychain
     }
 
     func fetchSuggestion(for prompt: String, settings: AppSettings) async throws -> AISuggestionResponse {
@@ -32,7 +37,7 @@ struct AIService {
             throw AIServiceError.disabled
         }
 
-        let config = try loadConfiguration()
+        let config = try loadConfiguration(using: settings)
         let requestBody = ChatCompletionRequest(
             model: config.model,
             messages: [
@@ -59,7 +64,7 @@ struct AIService {
 
         guard (200..<300).contains(httpResponse.statusCode) else {
             let message = String(data: data, encoding: .utf8) ?? "Unknown server error."
-            throw AIServiceError.requestFailed("Kimi API error (\(httpResponse.statusCode)): \(message)")
+            throw AIServiceError.requestFailed("NVIDIA Kimi API error (\(httpResponse.statusCode)): \(message)")
         }
 
         let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
@@ -96,7 +101,30 @@ struct AIService {
         """
     }
 
-    private func loadConfiguration() throws -> KimiConfiguration {
+    private func loadConfiguration(using settings: AppSettings) throws -> KimiConfiguration {
+        let bundledConfiguration = loadBundledConfiguration()
+        let storedAPIKey = normalizedValue(keychain.loadString(for: SecureStorageKeys.kimiAPIKey))
+        let bundledAPIKey = normalizedValue(bundledConfiguration?.apiKey)
+        let apiKey = storedAPIKey ?? bundledAPIKey
+
+        guard let apiKey else {
+            throw AIServiceError.missingConfiguration
+        }
+
+        let settingsBaseURL = normalizedValue(settings.aiConfiguration.baseURL)
+        let settingsModel = normalizedValue(settings.aiConfiguration.model)
+
+        let baseURL = settingsBaseURL
+            ?? normalizedValue(bundledConfiguration?.baseURL)
+            ?? AppConstants.kimiEndpoint
+        let model = settingsModel
+            ?? normalizedValue(bundledConfiguration?.model)
+            ?? AppConstants.kimiDefaultModel
+
+        return KimiConfiguration(apiKey: apiKey, baseURL: baseURL, model: model)
+    }
+
+    private func loadBundledConfiguration() -> BundledKimiConfiguration? {
         let bundle = Bundle.main
         let resourceName = bundle.url(forResource: "Config", withExtension: "plist") != nil ? "Config" : "Config.example"
 
@@ -104,18 +132,25 @@ struct AIService {
             let url = bundle.url(forResource: resourceName, withExtension: "plist"),
             let dictionary = NSDictionary(contentsOf: url) as? [String: Any]
         else {
-            throw AIServiceError.missingConfiguration
+            return nil
         }
 
-        let apiKey = dictionary["KIMI_API_KEY"] as? String ?? ""
-        let baseURL = dictionary["KIMI_BASE_URL"] as? String ?? AppConstants.kimiEndpoint
-        let model = dictionary["KIMI_MODEL"] as? String ?? AppConstants.kimiDefaultModel
+        let apiKey = normalizedValue(dictionary["KIMI_API_KEY"] as? String)
+        let baseURL = normalizedValue(dictionary["KIMI_BASE_URL"] as? String) ?? AppConstants.kimiEndpoint
+        let model = normalizedValue(dictionary["KIMI_MODEL"] as? String) ?? AppConstants.kimiDefaultModel
 
-        guard !apiKey.isEmpty, !apiKey.contains("PASTE_YOUR") else {
-            throw AIServiceError.missingConfiguration
+        return BundledKimiConfiguration(apiKey: apiKey, baseURL: baseURL, model: model)
+    }
+
+    private func normalizedValue(_ value: String?) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !trimmed.isEmpty,
+              !trimmed.contains("PASTE_YOUR")
+        else {
+            return nil
         }
 
-        return KimiConfiguration(apiKey: apiKey, baseURL: baseURL, model: model)
+        return trimmed
     }
 
     private func parseSuggestion(prompt: String, from content: String) throws -> AISuggestionResponse {
@@ -162,6 +197,12 @@ struct AIService {
 
 private struct KimiConfiguration {
     let apiKey: String
+    let baseURL: String
+    let model: String
+}
+
+private struct BundledKimiConfiguration {
+    let apiKey: String?
     let baseURL: String
     let model: String
 }

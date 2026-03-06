@@ -9,78 +9,19 @@ struct BubuProgressView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    VStack(alignment: .leading, spacing: 14) {
-                        WeightChartView(
-                            entries: progressViewModel.weightEntries,
-                            goalWeight: settingsViewModel.settings.goalWeight
-                        )
-
-                        HStack {
-                            statView(
-                                title: "Latest",
-                                value: "\(progressViewModel.latestWeight?.oneDecimalText ?? "--") lbs"
-                            )
-                            statView(
-                                title: "Lost",
-                                value: "\(progressViewModel.totalLost(from: settingsViewModel.settings.startingWeight).oneDecimalText) lbs"
-                            )
-                            statView(
-                                title: "Goal",
-                                value: "\(Int(progressViewModel.progressFraction(startingWeight: settingsViewModel.settings.startingWeight, goalWeight: settingsViewModel.settings.goalWeight) * 100))%"
-                            )
-                        }
-                    }
-                    .padding(.vertical, 8)
-                } header: {
-                    Text("Weight progress")
+            ScrollView {
+                VStack(spacing: Theme.Spacing.lg) {
+                    summaryCard
+                    chartCard
+                    weeklyAveragesCard
+                    entriesCard
                 }
-
-                Section("Weekly averages") {
-                    ForEach(progressViewModel.weeklyAverages) { average in
-                        HStack {
-                            Text(average.weekStart.fullDateLabel)
-                            Spacer()
-                            Text("\(average.averageWeight.oneDecimalText) lbs")
-                                .foregroundStyle(Theme.rose)
-                        }
-                    }
-                }
-
-                Section("Entries") {
-                    ForEach(progressViewModel.weightEntries.sorted { $0.date > $1.date }) { entry in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(entry.date.fullDateLabel)
-                                Text("Manual weigh-in")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text("\(entry.weight.oneDecimalText) lbs")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                progressViewModel.delete(entry: entry)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-
-                            Button {
-                                editingEntry = entry
-                                isPresentingEditor = true
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(Theme.rose)
-                        }
-                    }
-                }
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.vertical, Theme.Spacing.lg)
             }
-            .listStyle(.insetGrouped)
+            .bubuScreenBackground()
             .navigationTitle("Progress")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -104,16 +45,141 @@ struct BubuProgressView: View {
         }
     }
 
-    private func statView(title: String, value: String) -> some View {
-        VStack(spacing: 6) {
-            Text(value)
-                .font(.headline)
-                .foregroundStyle(Theme.cocoa)
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    private var summaryCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            BubuSectionHeader(
+                eyebrow: "Trend",
+                title: "Weight progress",
+                subtitle: "The visual language stays supportive here too: clear trend data, no harsh dashboards, and space to notice consistency."
+            )
+
+            HStack(spacing: Theme.Spacing.xs) {
+                BubuMetricPill(
+                    title: "Latest",
+                    value: "\(progressViewModel.latestWeight?.oneDecimalText ?? "--") lbs",
+                    icon: "scalemass.fill"
+                )
+                BubuMetricPill(
+                    title: "Lost",
+                    value: "\(progressViewModel.totalLost(from: settingsViewModel.settings.startingWeight).oneDecimalText) lbs",
+                    icon: "arrow.down.circle.fill",
+                    accent: Theme.Palette.sage
+                )
+                BubuMetricPill(
+                    title: "Goal",
+                    value: "\(Int(progressViewModel.progressFraction(startingWeight: settingsViewModel.settings.startingWeight, goalWeight: settingsViewModel.settings.goalWeight) * 100))%",
+                    icon: "flag.checkered.2.crossed",
+                    accent: Theme.Palette.roseDeep
+                )
+            }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+    }
+
+    private var chartCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            Text("Your trend line")
+                .font(Theme.Typography.section)
+                .foregroundStyle(Theme.Palette.cocoa)
+
+            WeightChartView(
+                entries: progressViewModel.weightEntries,
+                goalWeight: settingsViewModel.settings.goalWeight
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+    }
+
+    private var weeklyAveragesCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text("Weekly averages")
+                .font(Theme.Typography.section)
+                .foregroundStyle(Theme.Palette.cocoa)
+
+            if progressViewModel.weeklyAverages.isEmpty {
+                Text("Log a few entries to see averages appear here.")
+                    .font(Theme.Typography.body)
+                    .foregroundStyle(Theme.Palette.mist)
+            } else {
+                ForEach(progressViewModel.weeklyAverages) { average in
+                    HStack {
+                        Text(average.weekStart.fullDateLabel)
+                            .font(Theme.Typography.body)
+                            .foregroundStyle(Theme.Palette.cocoa)
+                        Spacer()
+                        Text("\(average.averageWeight.oneDecimalText) lbs")
+                            .font(Theme.Typography.bodyStrong)
+                            .foregroundStyle(Theme.Palette.rose)
+                    }
+
+                    if average.id != progressViewModel.weeklyAverages.last?.id {
+                        Divider()
+                            .overlay(Theme.Palette.border)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+    }
+
+    private var entriesCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text("Entries")
+                .font(Theme.Typography.section)
+                .foregroundStyle(Theme.Palette.cocoa)
+
+            if progressViewModel.weightEntries.isEmpty {
+                Text("No weigh-ins yet.")
+                    .font(Theme.Typography.body)
+                    .foregroundStyle(Theme.Palette.mist)
+            } else {
+                ForEach(progressViewModel.weightEntries.sorted { $0.date > $1.date }) { entry in
+                    VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(entry.date.fullDateLabel)
+                                    .font(Theme.Typography.bodyStrong)
+                                    .foregroundStyle(Theme.Palette.cocoa)
+                                Text("Manual weigh-in")
+                                    .font(Theme.Typography.footnote)
+                                    .foregroundStyle(Theme.Palette.mist)
+                            }
+
+                            Spacer()
+
+                            Text("\(entry.weight.oneDecimalText) lbs")
+                                .font(Theme.Typography.section)
+                                .foregroundStyle(Theme.Palette.rose)
+                        }
+
+                        HStack(spacing: Theme.Spacing.xs) {
+                            Button("Edit") {
+                                editingEntry = entry
+                                isPresentingEditor = true
+                            }
+                            .buttonStyle(BubuSecondaryButtonStyle())
+
+                            Button("Delete", role: .destructive) {
+                                progressViewModel.delete(entry: entry)
+                            }
+                            .buttonStyle(BubuSecondaryButtonStyle())
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 4)
+
+                    if entry.id != progressViewModel.weightEntries.sorted(by: { $0.date > $1.date }).last?.id {
+                        Divider()
+                            .overlay(Theme.Palette.border)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
     }
 }
 
@@ -135,12 +201,36 @@ private struct WeightEntryEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                DatePicker("Date", selection: $date, displayedComponents: .date)
-                TextField("Weight in lbs", text: $weightText)
-                    .keyboardType(.decimalPad)
+            VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+                BubuSectionHeader(
+                    eyebrow: entry == nil ? "New log" : "Edit log",
+                    title: entry == nil ? "Add weight" : "Update weight",
+                    subtitle: "Quick, simple, and readable."
+                )
+
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                    Text("Date")
+                        .font(Theme.Typography.bodyStrong)
+                        .foregroundStyle(Theme.Palette.cocoa)
+                    DatePicker("Date", selection: $date, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                }
+
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                    Text("Weight in lbs")
+                        .font(Theme.Typography.bodyStrong)
+                        .foregroundStyle(Theme.Palette.cocoa)
+                    TextField("Weight in lbs", text: $weightText)
+                        .keyboardType(.decimalPad)
+                        .bubuField()
+                }
+
+                Spacer()
             }
+            .padding(Theme.Spacing.lg)
+            .bubuScreenBackground()
             .navigationTitle(entry == nil ? "Add Weight" : "Edit Weight")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

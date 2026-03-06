@@ -1,144 +1,211 @@
 import SwiftUI
 
 struct AIMealSuggestionView: View {
+    var showsNavigationShell = true
+
+    var body: some View {
+        Group {
+            if showsNavigationShell {
+                NavigationStack {
+                    ScrollView {
+                        AIMealSuggestionContent()
+                            .padding(.horizontal, Theme.Spacing.md)
+                            .padding(.vertical, Theme.Spacing.lg)
+                    }
+                    .navigationTitle("AI Suggestions")
+                    .navigationBarTitleDisplayMode(.large)
+                }
+            } else {
+                AIMealSuggestionContent()
+            }
+        }
+        .bubuScreenBackground()
+    }
+}
+
+struct AIMealSuggestionContent: View {
     @EnvironmentObject private var aiViewModel: AIViewModel
     @EnvironmentObject private var settingsViewModel: SettingsViewModel
 
-    private let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    private let columns = [GridItem(.adaptive(minimum: 150), spacing: Theme.Spacing.xs)]
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("AI meal ideas")
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(Theme.cocoa)
-                        Text("Use Kimi to suggest replacements that stay simple, affordable, high-protein, and tailored to Bubu’s rules.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .bubuCard()
+        VStack(spacing: Theme.Spacing.lg) {
+            headerCard
 
-                    LazyVGrid(columns: columns, spacing: 10) {
-                        ForEach(aiViewModel.presetPrompts, id: \.self) { preset in
-                            Button {
-                                aiViewModel.loadPreset(preset)
-                            } label: {
-                                Text(preset)
-                                    .font(.footnote.weight(.medium))
-                                    .foregroundStyle(Theme.cocoa)
-                                    .frame(maxWidth: .infinity, minHeight: 72)
-                                    .padding(8)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                            .fill(Color.white.opacity(0.9))
-                                    )
-                            }
-                            .buttonStyle(.plain)
+            if !settingsViewModel.hasSavedAIAPIKey {
+                apiKeyCard
+            }
+
+            LazyVGrid(columns: columns, spacing: Theme.Spacing.xs) {
+                ForEach(aiViewModel.presetPrompts, id: \.self) { preset in
+                    Button {
+                        aiViewModel.loadPreset(preset)
+                    } label: {
+                        Text(preset)
+                            .font(Theme.Typography.footnote)
+                            .foregroundStyle(Theme.Palette.cocoa)
+                            .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+                    }
+                    .buttonStyle(BubuSecondaryButtonStyle())
+                }
+            }
+
+            promptComposerCard
+
+            if let errorMessage = aiViewModel.errorMessage {
+                feedbackCard(
+                    title: "Couldn’t load a suggestion",
+                    message: errorMessage,
+                    tint: Theme.Palette.surfaceRaised
+                ) {
+                    Button("Retry") {
+                        Task {
+                            await aiViewModel.fetchSuggestion(using: settingsViewModel.settings)
                         }
                     }
+                    .buttonStyle(BubuSecondaryButtonStyle())
+                }
+            }
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Prompt")
-                            .font(.headline)
-                            .foregroundStyle(Theme.cocoa)
-                        TextEditor(text: $aiViewModel.prompt)
-                            .frame(minHeight: 130)
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(Theme.cream)
-                            )
+            if let response = aiViewModel.response {
+                responseCard(response)
+            }
+        }
+    }
 
-                        Button {
-                            Task {
-                                await aiViewModel.fetchSuggestion(using: settingsViewModel.settings)
-                            }
-                        } label: {
-                            HStack {
-                                if aiViewModel.isLoading {
-                                    SwiftUI.ProgressView()
-                                        .tint(.white)
-                                }
-                                Text(aiViewModel.isLoading ? "Thinking..." : "Get meal suggestion")
-                                    .font(.headline)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Theme.rose)
-                        .disabled(aiViewModel.isLoading || !settingsViewModel.settings.aiSuggestionsEnabled)
+    private var headerCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            BubuSectionHeader(
+                eyebrow: "Meal inspiration",
+                title: "AI suggestions without the chaos",
+                subtitle: "Use the NVIDIA-hosted model to get substitutions that still feel realistic, affordable, and aligned with the plan."
+            )
+
+            HStack(spacing: Theme.Spacing.xs) {
+                BubuMetricPill(
+                    title: "Model",
+                    value: settingsViewModel.settings.aiConfiguration.model,
+                    icon: "cpu.fill"
+                )
+                BubuMetricPill(
+                    title: "Status",
+                    value: settingsViewModel.settings.aiSuggestionsEnabled ? "Enabled" : "Disabled",
+                    icon: "sparkles",
+                    accent: settingsViewModel.settings.aiSuggestionsEnabled ? Theme.Palette.sage : Theme.Palette.warning
+                )
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+    }
+
+    private var apiKeyCard: some View {
+        feedbackCard(
+            title: "API key needed",
+            message: "Open Settings and save the NVIDIA API key there. Until then, AI suggestions stay disabled even though the rest of the planner continues to work."
+        ) {
+            Text("Current model: \(settingsViewModel.settings.aiConfiguration.model)")
+                .font(Theme.Typography.footnote)
+                .foregroundStyle(Theme.Palette.rose)
+        }
+    }
+
+    private var promptComposerCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text("Prompt")
+                .font(Theme.Typography.section)
+                .foregroundStyle(Theme.Palette.cocoa)
+
+            TextEditor(text: $aiViewModel.prompt)
+                .font(UIFont.preferredFont(forTextStyle: .body).fontDescriptor.symbolicTraits.contains(.traitItalic) ? Theme.Typography.body : Theme.Typography.body)
+                .frame(minHeight: 150)
+                .padding(Theme.Spacing.xs)
+                .background(
+                    RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
+                        .fill(Theme.Palette.surfaceRaised)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
+                        .stroke(Theme.Palette.border, lineWidth: 1)
+                )
+
+            Button {
+                Task {
+                    await aiViewModel.fetchSuggestion(using: settingsViewModel.settings)
+                }
+            } label: {
+                HStack(spacing: Theme.Spacing.xs) {
+                    if aiViewModel.isLoading {
+                        ProgressView()
+                            .tint(Theme.Palette.onAccent)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .bubuCard()
+                    Text(aiViewModel.isLoading ? "Thinking..." : "Get meal suggestion")
+                }
+            }
+            .buttonStyle(BubuPrimaryButtonStyle())
+            .disabled(aiViewModel.isLoading || !settingsViewModel.settings.aiSuggestionsEnabled)
+            .opacity(aiViewModel.isLoading || !settingsViewModel.settings.aiSuggestionsEnabled ? 0.7 : 1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+    }
 
-                    if let errorMessage = aiViewModel.errorMessage {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Couldn’t load a suggestion")
-                                .font(.headline)
-                                .foregroundStyle(Theme.cocoa)
-                            Text(errorMessage)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            Button("Retry") {
-                                Task {
-                                    await aiViewModel.fetchSuggestion(using: settingsViewModel.settings)
-                                }
-                            }
-                            .buttonStyle(.bordered)
+    private func responseCard(_ response: AISuggestionResponse) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Text(response.summary)
+                .font(Theme.Typography.body)
+                .foregroundStyle(Theme.Palette.mist)
+
+            ForEach(response.suggestions) { suggestion in
+                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                    Text(suggestion.title)
+                        .font(Theme.Typography.section)
+                        .foregroundStyle(Theme.Palette.cocoa)
+
+                    Text(suggestion.detail)
+                        .font(Theme.Typography.body)
+                        .foregroundStyle(Theme.Palette.mist)
+
+                    HStack(spacing: Theme.Spacing.xs) {
+                        if let calories = suggestion.estimatedCalories {
+                            BubuMetricPill(title: "Calories", value: calories.calorieText, icon: "flame.fill")
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .bubuCard()
-                    }
-
-                    if let response = aiViewModel.response {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(response.summary)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-
-                            ForEach(response.suggestions) { suggestion in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(suggestion.title)
-                                        .font(.headline)
-                                        .foregroundStyle(Theme.cocoa)
-                                    Text(suggestion.detail)
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-
-                                    HStack {
-                                        if let calories = suggestion.estimatedCalories {
-                                            Label("\(calories) cal", systemImage: "flame")
-                                        }
-                                        if let protein = suggestion.estimatedProteinGrams {
-                                            Label("\(protein.oneDecimalText) g", systemImage: "bolt.heart")
-                                        }
-                                        if let cost = suggestion.estimatedCostCAD {
-                                            Label(cost.asCurrencyCAD, systemImage: "dollarsign.circle")
-                                        }
-                                    }
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(Theme.rose)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .fill(Theme.cream)
-                                )
-                            }
+                        if let protein = suggestion.estimatedProteinGrams {
+                            BubuMetricPill(title: "Protein", value: "\(protein.oneDecimalText) g", icon: "bolt.heart.fill", accent: Theme.Palette.sage)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .bubuCard()
+                        if let cost = suggestion.estimatedCostCAD {
+                            BubuMetricPill(title: "Cost", value: cost.asCurrencyCAD, icon: "dollarsign.circle.fill", accent: Theme.Palette.roseDeep)
+                        }
                     }
                 }
-                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .bubuCard(tint: Theme.Palette.surfaceRaised)
             }
-            .background(Theme.cream.ignoresSafeArea())
-            .navigationTitle("AI Suggestions")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: Theme.Palette.surface)
+    }
+
+    private func feedbackCard<Content: View>(
+        title: String,
+        message: String,
+        tint: Color = Theme.Palette.surface,
+        @ViewBuilder footer: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            Text(title)
+                .font(Theme.Typography.section)
+                .foregroundStyle(Theme.Palette.cocoa)
+
+            Text(message)
+                .font(Theme.Typography.body)
+                .foregroundStyle(Theme.Palette.mist)
+
+            footer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bubuCard(tint: tint)
     }
 }
 

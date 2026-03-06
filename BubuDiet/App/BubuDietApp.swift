@@ -1,5 +1,52 @@
 import SwiftUI
 
+enum AppTab: Hashable {
+    case home
+    case meals
+    case progress
+    case coach
+    case settings
+}
+
+enum CoachMode: String, CaseIterable, Identifiable {
+    case exercise = "Movement"
+    case ai = "AI Suggestions"
+
+    var id: String { rawValue }
+}
+
+@MainActor
+final class AppNavigationModel: ObservableObject {
+    @Published var selectedTab: AppTab = .home
+    @Published var selectedCoachMode: CoachMode = .exercise
+
+    func openMeals() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            selectedTab = .meals
+        }
+    }
+
+    func openProgress() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            selectedTab = .progress
+        }
+    }
+
+    func openExercise() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            selectedCoachMode = .exercise
+            selectedTab = .coach
+        }
+    }
+
+    func openAI() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            selectedCoachMode = .ai
+            selectedTab = .coach
+        }
+    }
+}
+
 @main
 struct BubuDietApp: App {
     @StateObject private var homeViewModel = HomeViewModel()
@@ -10,11 +57,13 @@ struct BubuDietApp: App {
     @StateObject private var notificationViewModel = NotificationViewModel()
     @StateObject private var aiViewModel = AIViewModel()
     @StateObject private var exerciseViewModel = ExerciseViewModel()
+    @StateObject private var navigationModel = AppNavigationModel()
 
     private let widgetSyncService = WidgetSyncService()
 
     init() {
         StorageService.shared.seedIfNeeded()
+        Theme.configureSystemAppearance()
     }
 
     var body: some Scene {
@@ -38,6 +87,7 @@ struct BubuDietApp: App {
             .environmentObject(notificationViewModel)
             .environmentObject(aiViewModel)
             .environmentObject(exerciseViewModel)
+            .environmentObject(navigationModel)
         }
     }
 }
@@ -52,46 +102,44 @@ private struct AppRootView: View {
     @ObservedObject var aiViewModel: AIViewModel
     @ObservedObject var exerciseViewModel: ExerciseViewModel
 
+    @EnvironmentObject private var navigationModel: AppNavigationModel
+
     let widgetSyncService: WidgetSyncService
 
     var body: some View {
-        TabView {
+        TabView(selection: $navigationModel.selectedTab) {
             HomeView()
+                .tag(AppTab.home)
                 .tabItem {
-                    Label("Home", systemImage: "heart.text.square")
+                    Label("Home", systemImage: "heart.text.square.fill")
                 }
 
             DailyMealPlanView()
+                .tag(AppTab.meals)
                 .tabItem {
-                    Label("Meals", systemImage: "fork.knife")
-                }
-
-            GroceryListView()
-                .tabItem {
-                    Label("Grocery", systemImage: "cart")
+                    Label("Meals", systemImage: "fork.knife.circle.fill")
                 }
 
             BubuProgressView()
+                .tag(AppTab.progress)
                 .tabItem {
-                    Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
+                    Label("Progress", systemImage: "chart.line.uptrend.xyaxis.circle.fill")
                 }
 
-            ExercisePlanView()
+            CoachHubView()
+                .tag(AppTab.coach)
                 .tabItem {
-                    Label("Exercise", systemImage: "figure.walk")
-                }
-
-            AIMealSuggestionView()
-                .tabItem {
-                    Label("AI", systemImage: "sparkles")
+                    Label("Coach", systemImage: "sparkles.rectangle.stack.fill")
                 }
 
             SettingsView()
+                .tag(AppTab.settings)
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape")
+                    Label("Settings", systemImage: "slider.horizontal.3")
                 }
         }
-        .tint(Theme.rose)
+        .tint(Theme.Palette.rose)
+        .animation(.easeInOut(duration: 0.25), value: navigationModel.selectedTab)
         .task {
             await notificationViewModel.refreshAuthorizationStatus()
             refreshSharedState()
@@ -120,5 +168,50 @@ private struct AppRootView: View {
             weeklyPlan: mealPlanViewModel.weeklyPlan,
             weightEntries: progressViewModel.weightEntries
         )
+    }
+}
+
+private struct CoachHubView: View {
+    @EnvironmentObject private var navigationModel: AppNavigationModel
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: Theme.Spacing.lg) {
+                    BubuSectionHeader(
+                        eyebrow: "Gentle support",
+                        title: "Coach",
+                        subtitle: "Keep movement and meal ideas in one calm space, with the mood staying encouraging rather than clinical."
+                    )
+
+                    HStack(spacing: Theme.Spacing.xs) {
+                        ForEach(CoachMode.allCases) { mode in
+                            Button(mode.rawValue) {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    navigationModel.selectedCoachMode = mode
+                                }
+                            }
+                            .buttonStyle(BubuChipButtonStyle(isSelected: navigationModel.selectedCoachMode == mode))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Group {
+                        switch navigationModel.selectedCoachMode {
+                        case .exercise:
+                            ExercisePlanContent()
+                        case .ai:
+                            AIMealSuggestionContent()
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.vertical, Theme.Spacing.lg)
+            }
+            .bubuScreenBackground()
+            .navigationTitle("Coach")
+            .navigationBarTitleDisplayMode(.large)
+        }
     }
 }
